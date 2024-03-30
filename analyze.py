@@ -53,7 +53,7 @@ def visualize_filters(layer_weights):
         fig = plt.figure(figsize=(10, 2 * rows))
         for i in range(num_filters):
             ax = fig.add_subplot(rows, columns, i + 1)
-            ax.imshow(filters[i, 0].cpu().numpy(), cmap='gray')
+            ax.imshow(filters[i, 0].cpu().numpy(), cmap='Greens')
             ax.set_xticks([])
             ax.set_yticks([])
         plt.show()

@@ -96,7 +96,7 @@ def preprocess_image(image_path):
     img_tensor = TF.to_tensor(img)
 
     # Normalize the image to match MNIST dataset
-    img_tensor = TF.normalize(img_tensor, [0.5], [0.5])
+    img_tensor = TF.normalize(img_tensor, [0.1307],[0.3081])
 
     # Add batch dimension
     img_tensor = img_tensor.unsqueeze(0)

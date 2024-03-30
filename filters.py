@@ -72,7 +72,7 @@ def main():
     model = load_model(model_path, device)
 
     # Prepare the data loader
-    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
+    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
     train_data = datasets.MNIST(root='data', train=True, download=True, transform=transform)
     train_loader = DataLoader(train_data, batch_size=1, shuffle=True)
 
