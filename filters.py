@@ -7,12 +7,23 @@ from torch.utils.data import DataLoader
 from base import Network
 from analyze import load_model
 
-# Assuming you've already defined the Network class and load_model function
+
 
 def apply_filters_and_visualize(model, device, train_loader):
+    """
+    Apply filters to the first image from the MNIST training dataset and visualize the results.
+
+    Parameters:
+    - model: The PyTorch model containing the convolutional layers.
+    - device: The device (CPU or GPU) on which the computations will be performed.
+    - train_loader: The data loader for the MNIST training dataset.
+
+    Returns:
+    None
+    """
     # Get the first image from the MNIST training dataset
     images, _ = next(iter(train_loader))
-    image = images[0].squeeze().cpu().numpy()  # Convert to numpy array and remove channel dimension
+    image = images[0].squeeze().cpu().numpy()  # Converting to numpy array and removing channel dimension
 
     # Get the weights of the first layer (conv1)
     with torch.no_grad():
@@ -41,6 +52,21 @@ def apply_filters_and_visualize(model, device, train_loader):
     plt.show()
 
 def main():
+    """
+    Runs the main function of the program.
+
+    This function initializes the device to be used for computation, either "cuda" if a CUDA-enabled GPU is available, or "cpu" otherwise. It then loads a pre-trained model from the specified model path using the `load_model` function. The model is loaded onto the selected device.
+
+    The function prepares the data loader by defining a transformation pipeline using the `transforms.Compose` function. The transformation pipeline converts the images to tensors and normalizes them. The transformed data is used to create an instance of the `datasets.MNIST` class, which loads the MNIST dataset from the specified root directory. The dataset is then used to create a data loader object with a batch size of 1 and shuffle enabled.
+
+    Finally, the function applies filters to the model and visualizes the results by calling the `apply_filters_and_visualize` function with the model, device, and data loader as arguments.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model_path = 'mnist_model.pth'
     model = load_model(model_path, device)

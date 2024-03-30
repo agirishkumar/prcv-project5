@@ -9,6 +9,25 @@ from torch.utils.data import DataLoader
 import torch.optim as optim
 
 def visualize_mnist_test(test_loader):
+    """
+    Visualizes a batch of MNIST test images.
+
+    Args:
+        test_loader (torch.utils.data.DataLoader): The data loader for the MNIST test dataset.
+
+    Returns:
+        None
+
+    This function takes a data loader for the MNIST test dataset and visualizes a batch of test images. It retrieves the images and labels from the data loader, moves the images back to the CPU for visualization, and then plots the images along with their corresponding labels. The function creates a figure with 6 subplots and displays the plot.
+
+    Note:
+        - This function assumes that the MNIST test dataset is already loaded and the data loader is provided as input.
+        - The images are plotted in grayscale.
+        - The function does not return any values.
+
+    Example:
+        visualize_mnist_test(test_loader)
+    """
     dataiter = iter(test_loader)
     images, labels = next(dataiter)  # Use next() function with the iterator
     images = images.to('cpu')  # Move images back to CPU for visualization
@@ -67,6 +86,19 @@ class Network(nn.Module):
 # graph.save('Network.png', format='png')
     
 def train(model, device, train_loader, optimizer, epoch):
+    """
+    Train the model using the given data and optimizer for the specified number of epochs.
+    
+    Args:
+        model (torch.nn.Module): The model to be trained.
+        device (torch.device): The device on which the model and data should be loaded.
+        train_loader (torch.utils.data.DataLoader): The data loader for the training dataset.
+        optimizer (torch.optim.Optimizer): The optimizer to be used for training.
+        epoch (int): The current epoch number.
+    
+    Returns:
+        tuple: A tuple containing the average loss and accuracy of the trained model on the training set.
+    """
     model.train()
     train_loss = 0
     correct = 0
@@ -89,6 +121,17 @@ def train(model, device, train_loader, optimizer, epoch):
 
 
 def test(model, device, test_loader):
+    """
+    Evaluates the performance of a model on a test dataset.
+
+    Args:
+        model (torch.nn.Module): The model to evaluate.
+        device (torch.device): The device on which the model and data will be loaded.
+        test_loader (torch.utils.data.DataLoader): The data loader for the test dataset.
+
+    Returns:
+        Tuple[float, float]: A tuple containing the average test loss and the accuracy of the model on the test dataset.
+    """
     model.eval()
     test_loss = 0
     correct = 0
@@ -108,6 +151,15 @@ def test(model, device, test_loader):
 
 
 def main():
+    """
+    Main function that runs the training and testing loop for a neural network model on the MNIST dataset.
+    
+    Parameters:
+    None
+    
+    Returns:
+    None
+    """
     # Check for GPU
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f'Using device: {device}')

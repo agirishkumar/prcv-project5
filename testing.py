@@ -77,6 +77,15 @@ def predict(model, device, test_loader):
     plt.show()
 
 def preprocess_image(image_path):
+    """
+    Preprocesses an image by opening, converting to grayscale, inverting colors, converting to PyTorch tensor, normalizing, and adding a batch dimension.
+
+    Args:
+        image_path (str): The file path to the image.
+
+    Returns:
+        torch.Tensor: The preprocessed image tensor.
+    """
     # Open the image file
     img = Image.open(image_path).convert('L')  # Convert to grayscale
 
@@ -94,6 +103,23 @@ def preprocess_image(image_path):
     return img_tensor
 
 def classify_digit(model, device, image_tensor):
+    """
+    Classifies a digit using a pre-trained model.
+
+    Args:
+        model (torch.nn.Module): The pre-trained model used for classification.
+        device (torch.device): The device on which the model and tensor will be moved.
+        image_tensor (torch.Tensor): The input image tensor.
+
+    Returns:
+        int: The predicted digit class.
+
+    Note:
+        - The model is set to evaluation mode before prediction.
+        - The image tensor is moved to the specified device.
+        - The output of the model is obtained by passing the image tensor.
+        - The predicted digit class is returned as an integer.
+    """
     # Set model to evaluation mode and move tensor to device
     model.eval()
     image_tensor = image_tensor.to(device)

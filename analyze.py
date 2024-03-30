@@ -4,15 +4,43 @@ import matplotlib.pyplot as plt
 import math
 
 def load_model(model_path, device):
+    """
+    Load a model from the given model_path onto the specified device.
+
+    Args:
+        model_path (str): The file path to the model.
+        device: The device onto which the model will be loaded.
+
+    Returns:
+        model: The loaded model.
+    """
     model = Network().to(device)
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
     return model
 
 def print_model(model):
+    """
+    Print the given model.
+    
+    Parameters:
+    model (any): The model to be printed.
+    
+    Returns:
+    None
+    """
     print(model)
 
 def visualize_filters(layer_weights):
+    """
+    Visualizes the filters of a given layer in a grid.
+    
+    Args:
+        layer_weights (torch.Tensor): The weights of the layer to visualize.
+        
+    Returns:
+        None
+    """
     with torch.no_grad():  # We don't need gradients for visualization
         # Normalize the weights for visualization
         min_val = layer_weights.min()
@@ -31,6 +59,23 @@ def visualize_filters(layer_weights):
         plt.show()
 
 def main():
+    """
+    The main function that runs the program.
+
+    This function does the following:
+    1. Checks if a CUDA-enabled GPU is available and sets the device accordingly.
+    2. Specifies the path to the model file.
+    3. Loads and prints the model.
+    4. Retrieves the weights of the first layer 'conv1' from the model.
+    5. Prints the shape of the 'conv1' weights.
+    6. Visualizes the filters of the first layer.
+
+    Parameters:
+    None
+
+    Returns:
+    None
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model_path = 'mnist_model.pth'
 
