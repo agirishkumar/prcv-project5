@@ -3,6 +3,8 @@ import torch
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader
 from base import Network 
+from PIL import Image, ImageOps
+import torchvision.transforms.functional as TF
 
 def load_data(batch_size=10):
     """
@@ -74,6 +76,33 @@ def predict(model, device, test_loader):
         ax.axis('off')
     plt.show()
 
+def preprocess_image(image_path):
+    # Open the image file
+    img = Image.open(image_path).convert('L')  # Convert to grayscale
+
+    # Invert image colors to match MNIST
+    img = ImageOps.invert(img)
+
+    # Convert to PyTorch tensor
+    img_tensor = TF.to_tensor(img)
+
+    # Normalize the image to match MNIST dataset
+    img_tensor = TF.normalize(img_tensor, [0.5], [0.5])
+
+    # Add batch dimension
+    img_tensor = img_tensor.unsqueeze(0)
+    return img_tensor
+
+def classify_digit(model, device, image_tensor):
+    # Set model to evaluation mode and move tensor to device
+    model.eval()
+    image_tensor = image_tensor.to(device)
+
+    # Predict the digit
+    output = model(image_tensor)
+    pred = output.argmax(dim=1, keepdim=True)
+    return pred.item()
+
 def main():
     """
     The main function that runs the program.
@@ -94,6 +123,12 @@ def main():
 
     test_loader = load_data(10)  # Load the data with a batch size of 10
     predict(model, device, test_loader)
+
+    for i in range(10):
+        image_path = f'{i}.JPG'  
+        image_tensor = preprocess_image(image_path)
+        prediction = classify_digit(model, device, image_tensor)
+        print(f'Handwritten digit: {i}, Predicted digit: {prediction}')
 
 if __name__ == "__main__":
     main()
