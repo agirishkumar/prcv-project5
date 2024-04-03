@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -17,10 +18,6 @@ transform = transforms.Compose([
 
 train_dataset = datasets.FashionMNIST(root='./data2', train=True, download=True, transform=transform)
 test_dataset = datasets.FashionMNIST(root='./data2', train=False, download=True, transform=transform)
-
-# train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-# test_loader = DataLoader(test_dataset, batch_size=1000, shuffle=False)
-
 
 class CustomCNN(nn.Module):
     def __init__(self, num_filters1=10, num_filters2=20, dropout_rate=0.5, kernel_size1=5, kernel_size2=5, activation='relu'):
@@ -174,54 +171,75 @@ def run_experiments():
                                 if num_filters2 >= num_filters1:
                                     run_experiment(num_filters1=num_filters1, num_filters2=num_filters2, dropout_rate=dropout_rate, lr=lr, batch_size=batch_size, optimizer_choice=optimizer_choice, activation=activation)
 
-# def plot_accuracy_vs_parameter(parameter_name):
-#     parameter_values = [result[parameter_name] for result in experiment_results]
-#     accuracies = [result["accuracy"] for result in experiment_results]
-    
-#     plt.figure(figsize=(10, 6))
-#     plt.scatter(parameter_values, accuracies, color='blue')
-#     plt.title(f"Accuracy vs {parameter_name.title()}")
-#     plt.xlabel(parameter_name.title())
-#     plt.ylabel("Accuracy (%)")
-#     plt.grid(True)
-#     plt.show()
                                     
 df = pd.DataFrame(experiment_results)
+df.to_csv('experiment_results.csv', index=False)
 
-def plot_parameter_impact(parameter_name):
-    # Prepare data: Group by parameter and calculate mean accuracy
-    grouped_data = df.groupby(parameter_name)['Accuracy'].mean().reset_index()
+def plot_parameter_impact(df, parameter_name):
+    grouped_data = df.groupby(parameter_name)['accuracy'].mean().reset_index()
     
-    # Sort data if the parameter is categorical and not numeric
-    if not np.issubdtype(grouped_data[parameter_name].dtype, np.number):
-        grouped_data = grouped_data.sort_values(by='Accuracy')
-    
-    # Plotting
-    plt.figure(figsize=(8, 5))
+    plt.figure(figsize=(10, 6))
     if np.issubdtype(grouped_data[parameter_name].dtype, np.number):
-        plt.plot(grouped_data[parameter_name], grouped_data['Accuracy'], marker='o', linestyle='-', color='blue')
+        plt.plot(grouped_data[parameter_name], grouped_data['accuracy'], marker='o', linestyle='-')
     else:
-        plt.bar(grouped_data[parameter_name], grouped_data['Accuracy'], color='skyblue')
+        plt.bar(grouped_data[parameter_name], grouped_data['accuracy'])
         plt.xticks(rotation=45, ha="right")
     plt.title(f'Impact of {parameter_name} on Accuracy')
     plt.xlabel(parameter_name)
     plt.ylabel('Average Accuracy (%)')
+    plt.grid(True)
+    plt.show()
+                                
+if __name__ == "__main__":
+    if os.path.exists('experiment_results2.csv'):
+        # Check if the file is not empty
+        if os.path.getsize('experiment_results.csv') > 0:
+            print("Experiment results file found. Reading...")
+            df = pd.read_csv('experiment_results2.csv')
+            # Check if DataFrame is not empty and has at least one column
+            if df.empty or df.columns.empty:
+                print("CSV file found but it is empty or malformed. Running experiments...")
+                os.remove('experiment_results.csv')  # Remove the empty/malformed file
+                run_experiments()
+                df = pd.DataFrame(experiment_results)
+                df.to_csv('experiment_results2.csv', index=False)
+        else:
+            print("CSV file found but it is empty. Running experiments...")
+            run_experiments()
+            df = pd.DataFrame(experiment_results)
+            
+    else:
+        print("Experiment results file not found. Running experiments...")
+        run_experiments()
+        
+    df['filter_combo'] = df['filter_combo'].apply(eval)
+    grouped_data = df.groupby(['filter_combo', 'optimizer'])['accuracy'].mean().unstack()
+    grouped_data.index = grouped_data.index.map(lambda x: f'({x[0]},{x[1]})')
+    
+
+
+    # Continue with your plotting functions if df is not empty
+    print("Plotting results...")
+    plot_parameter_impact(df, 'learning_rate')
+    plot_parameter_impact(df, 'dropout_rate')
+    plot_parameter_impact(df, 'batch_size')
+    plot_parameter_impact(df, 'optimizer')
+    plot_parameter_impact(df, 'num_filters1')
+    plot_parameter_impact(df, 'num_filters2')
+    fig, ax = plt.subplots(figsize=(12, 8))
+    grouped_data.plot(kind='bar', ax=ax)
+    plt.xlabel('(num_filters1, num_filters2)')
+    plt.ylabel('Average Accuracy (%)')
+    plt.title('Average Accuracy for Different Filter Combinations and Optimizers')
+    plt.xticks(rotation=45)
+    plt.legend(title='Optimizer')
     plt.grid(axis='y')
     plt.tight_layout()
     plt.show()
 
-                                
 
-if __name__ == "__main__":
-    run_experiments()
-    # plot_accuracy_vs_parameter("dropout_rate")
-    # Plotting the impact of various parameters including Learning Rate
-    plot_parameter_impact('LearningRate')
-    plot_parameter_impact('Dropout')
-    plot_parameter_impact('BatchSize')
-    plot_parameter_impact('Optimizer')
-    plot_parameter_impact('num_filters1')
-    plot_parameter_impact('num_filters2')   
+
+ 
     
 
 
