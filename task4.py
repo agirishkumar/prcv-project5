@@ -6,6 +6,8 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import time
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 # Data loading
 transform = transforms.Compose([
@@ -172,21 +174,54 @@ def run_experiments():
                                 if num_filters2 >= num_filters1:
                                     run_experiment(num_filters1=num_filters1, num_filters2=num_filters2, dropout_rate=dropout_rate, lr=lr, batch_size=batch_size, optimizer_choice=optimizer_choice, activation=activation)
 
-def plot_accuracy_vs_parameter(parameter_name):
-    parameter_values = [result[parameter_name] for result in experiment_results]
-    accuracies = [result["accuracy"] for result in experiment_results]
+# def plot_accuracy_vs_parameter(parameter_name):
+#     parameter_values = [result[parameter_name] for result in experiment_results]
+#     accuracies = [result["accuracy"] for result in experiment_results]
     
-    plt.figure(figsize=(10, 6))
-    plt.scatter(parameter_values, accuracies, color='blue')
-    plt.title(f"Accuracy vs {parameter_name.title()}")
-    plt.xlabel(parameter_name.title())
-    plt.ylabel("Accuracy (%)")
-    plt.grid(True)
+#     plt.figure(figsize=(10, 6))
+#     plt.scatter(parameter_values, accuracies, color='blue')
+#     plt.title(f"Accuracy vs {parameter_name.title()}")
+#     plt.xlabel(parameter_name.title())
+#     plt.ylabel("Accuracy (%)")
+#     plt.grid(True)
+#     plt.show()
+                                    
+df = pd.DataFrame(experiment_results)
+
+def plot_parameter_impact(parameter_name):
+    # Prepare data: Group by parameter and calculate mean accuracy
+    grouped_data = df.groupby(parameter_name)['Accuracy'].mean().reset_index()
+    
+    # Sort data if the parameter is categorical and not numeric
+    if not np.issubdtype(grouped_data[parameter_name].dtype, np.number):
+        grouped_data = grouped_data.sort_values(by='Accuracy')
+    
+    # Plotting
+    plt.figure(figsize=(8, 5))
+    if np.issubdtype(grouped_data[parameter_name].dtype, np.number):
+        plt.plot(grouped_data[parameter_name], grouped_data['Accuracy'], marker='o', linestyle='-', color='blue')
+    else:
+        plt.bar(grouped_data[parameter_name], grouped_data['Accuracy'], color='skyblue')
+        plt.xticks(rotation=45, ha="right")
+    plt.title(f'Impact of {parameter_name} on Accuracy')
+    plt.xlabel(parameter_name)
+    plt.ylabel('Average Accuracy (%)')
+    plt.grid(axis='y')
+    plt.tight_layout()
     plt.show()
+
+                                
 
 if __name__ == "__main__":
     run_experiments()
-    plot_accuracy_vs_parameter("dropout_rate")
+    # plot_accuracy_vs_parameter("dropout_rate")
+    # Plotting the impact of various parameters including Learning Rate
+    plot_parameter_impact('LearningRate')
+    plot_parameter_impact('Dropout')
+    plot_parameter_impact('BatchSize')
+    plot_parameter_impact('Optimizer')
+    plot_parameter_impact('num_filters1')
+    plot_parameter_impact('num_filters2')   
     
 
 
