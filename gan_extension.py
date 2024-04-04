@@ -1,3 +1,6 @@
+# Authors: Girish Kumar Adari, Alexander Seljuk
+# Extension: Genarating new fashion apparel images by learning from Fashion MNIST dataset 
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
