@@ -87,21 +87,25 @@ class Network(nn.Module):
     
 def train(model, device, train_loader, optimizer, epoch):
     """
-    Train the model using the given data and optimizer for the specified number of epochs.
-    
+    Trains the model using the provided data and optimizer for one epoch.
+
     Args:
-        model (torch.nn.Module): The model to be trained.
-        device (torch.device): The device on which the model and data should be loaded.
-        train_loader (torch.utils.data.DataLoader): The data loader for the training dataset.
-        optimizer (torch.optim.Optimizer): The optimizer to be used for training.
-        epoch (int): The current epoch number.
-    
+        model: The neural network model to be trained.
+        device: The device where the model and data will be processed.
+        train_loader: The data loader containing the training data.
+        optimizer: The optimizer used to update the model parameters.
+        epoch: The current epoch number.
+
     Returns:
-        tuple: A tuple containing the average loss and accuracy of the trained model on the training set.
+        batch_losses: A list of losses for each batch during the epoch.
+        batch_accuracies: A list of accuracies for each batch during the epoch.
+        cumulative_samples: A list of cumulative samples processed after each batch.
     """
     model.train()
-    train_loss = 0
-    correct = 0
+    batch_losses = []
+    batch_accuracies = []
+    cumulative_samples = []
+    total_samples = 0
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
@@ -109,45 +113,46 @@ def train(model, device, train_loader, optimizer, epoch):
         loss = F.nll_loss(output, target)
         loss.backward()
         optimizer.step()
-        train_loss += loss.item()
         pred = output.argmax(dim=1, keepdim=True)
-        correct += pred.eq(target.view_as(pred)).sum().item()
-    
-    train_loss /= len(train_loader.dataset)
-    accuracy = 100. * correct / len(train_loader.dataset)
-    print(f'\nTrain set: Average loss: {train_loss:.4f}, Accuracy: {correct}/{len(train_loader.dataset)}'
-          f' ({accuracy:.0f}%)\n')
-    return train_loss, accuracy
-
+        correct = pred.eq(target.view_as(pred)).sum().item()
+        total_samples += target.size(0)
+        batch_losses.append(loss.item())
+        batch_accuracies.append(100. * correct / target.size(0))
+        cumulative_samples.append(total_samples)
+    return batch_losses, batch_accuracies, cumulative_samples
 
 def test(model, device, test_loader):
     """
-    Evaluates the performance of a model on a test dataset.
+    Function to test a model on a given test dataset.
 
-    Args:
-        model (torch.nn.Module): The model to evaluate.
-        device (torch.device): The device on which the model and data will be loaded.
-        test_loader (torch.utils.data.DataLoader): The data loader for the test dataset.
+    Parameters:
+    - model: the neural network model to be tested
+    - device: the device on which the model is evaluated
+    - test_loader: the data loader for the test dataset
 
     Returns:
-        Tuple[float, float]: A tuple containing the average test loss and the accuracy of the model on the test dataset.
+    - batch_losses: a list of losses calculated for each batch
+    - batch_accuracies: a list of accuracies calculated for each batch
+    - cumulative_samples: a list of cumulative samples processed
     """
     model.eval()
-    test_loss = 0
-    correct = 0
+    batch_losses = []
+    batch_accuracies = []
+    cumulative_samples = []
+    total_samples = 0
     with torch.no_grad():
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
-            pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
-            correct += pred.eq(target.view_as(pred)).sum().item()
+            loss = F.nll_loss(output, target, reduction='sum')
+            pred = output.argmax(dim=1, keepdim=True)
+            correct = pred.eq(target.view_as(pred)).sum().item()
+            total_samples += target.size(0)
+            batch_losses.append(loss.item())
+            batch_accuracies.append(100. * correct / target.size(0))
+            cumulative_samples.append(total_samples)
+    return batch_losses, batch_accuracies, cumulative_samples
 
-    test_loss /= len(test_loader.dataset)
-    accuracy = 100. * correct / len(test_loader.dataset)
-    print(f'\nTest set: Average loss: {test_loss:.4f}, Accuracy: {correct}/{len(test_loader.dataset)}'
-          f' ({accuracy:.0f}%)\n')
-    return test_loss, accuracy
 
 
 def main():
@@ -195,40 +200,41 @@ def main():
     optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.5)
 
     epochs = 5
-    # Initialize variables for storing metrics
-    train_losses, test_losses = [], []
-    train_accuracies, test_accuracies = [], []
-    
-    # Training and testing loop
-    for epoch in range(1, epochs + 1):
-        train_loss, train_accuracy = train(model, device, train_loader, optimizer, epoch)
-        test_loss, test_accuracy = test(model, device, test_loader)
-        
-        # Append metrics to their respective lists
-        train_losses.append(train_loss)
-        test_losses.append(test_loss)
-        train_accuracies.append(train_accuracy)
-        test_accuracies.append(test_accuracy)
+    # Initialize lists to store batch losses and accuracies
+    train_batch_losses, train_batch_accuracies, train_cumulative_samples = [], [], []
+    test_batch_losses, test_batch_accuracies, test_cumulative_samples = [], [], []
 
-    # Plotting
+    for epoch in range(1, epochs + 1):
+        batch_losses, batch_accuracies, cumulative_samples = train(model, device, train_loader, optimizer, epoch)
+        train_batch_losses.extend(batch_losses)
+        train_batch_accuracies.extend(batch_accuracies)
+        train_cumulative_samples.extend(cumulative_samples)
+
+        batch_losses, batch_accuracies, cumulative_samples = test(model, device, test_loader)
+        test_batch_losses.extend(batch_losses)
+        test_batch_accuracies.extend(batch_accuracies)
+        test_cumulative_samples.extend(cumulative_samples)
+
+    # Plotting the losses
     plt.figure(figsize=(10, 5))
-    plt.plot(train_losses, label='Train Loss', color='green')
-    plt.plot(test_losses, label='Test Loss', color='red')
-    plt.title('Training vs Test Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
+    plt.plot(train_cumulative_samples, train_batch_losses, label='Train Batch Loss', color='green')
+    plt.plot(test_cumulative_samples, test_batch_losses, label='Test Batch Loss', color='red')
+    plt.title('Negative Log Likelihood Loss vs Number of Samples')
+    plt.xlabel('Number of Samples Seen')
+    plt.ylabel('Negative Log Likelihood Loss')
     plt.legend()
     plt.show()
 
+    # Plotting the accuracies
     plt.figure(figsize=(10, 5))
-    plt.plot(train_accuracies, label='Train Accuracy', color='green')
-    plt.plot(test_accuracies, label='Test Accuracy', color='blue')
-    plt.title('Training vs Test Accuracy')
-    plt.xlabel('Epoch')
+    plt.plot(train_cumulative_samples, train_batch_accuracies, label='Train Batch Accuracy', color='blue')
+    plt.plot(test_cumulative_samples, test_batch_accuracies, label='Test Batch Accuracy', color='orange')
+    plt.title('Accuracy vs Number of Samples')
+    plt.xlabel('Number of Samples Seen')
     plt.ylabel('Accuracy (%)')
     plt.legend()
     plt.show()
-
+    
     # Save the model
     torch.save(model.state_dict(), 'mnist_model.pth')
     print('Model saved to mnist_model.pth')
