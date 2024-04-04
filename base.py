@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader
 import torch.optim as optim
+from torchviz import make_dot
 
 def visualize_mnist_test(test_loader):
     """
@@ -198,6 +199,11 @@ def main():
 
     model = Network().to(device)
     optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.5)
+
+    x = torch.randn(1, 1, 28, 28).to(device)  # Ensure the input tensor is on the correct device
+    out = model(x)  # Forward pass to get the model output
+    dot = make_dot(out, params=dict(list(model.named_parameters()) + [('x', x)]))  # Create the visualization
+    dot.render("Network_architecture", format="png")
 
     epochs = 5
     # Initialize lists to store batch losses and accuracies
