@@ -1,3 +1,7 @@
+# Authors: Girish Kumar Adari, Alexander Seljuk
+# Code for Task 4: Design your own experiment on Fashion-MNIST dataset
+# Extension:  Experimented with more parameters and generated results with graphs
+
 import os
 import torch
 import torch.nn as nn
@@ -21,6 +25,20 @@ test_dataset = datasets.FashionMNIST(root='./data2', train=False, download=True,
 
 class CustomCNN(nn.Module):
     def __init__(self, num_filters1=10, num_filters2=20, dropout_rate=0.5, kernel_size1=5, kernel_size2=5, activation='relu'):
+        """
+        Initialize the CustomCNN with specified parameters.
+
+        Parameters:
+            num_filters1 (int): Number of filters for the first convolutional layer.
+            num_filters2 (int): Number of filters for the second convolutional layer.
+            dropout_rate (float): Dropout rate for the Dropout layer.
+            kernel_size1 (int): Kernel size for the first convolutional layer.
+            kernel_size2 (int): Kernel size for the second convolutional layer.
+            activation (str): Activation function to use.
+
+        Returns:
+            None
+        """
         super(CustomCNN, self).__init__()
         self.conv1 = nn.Conv2d(1, num_filters1, kernel_size=kernel_size1)
         self.conv2 = nn.Conv2d(num_filters1, num_filters2, kernel_size=kernel_size2)
@@ -40,19 +58,33 @@ class CustomCNN(nn.Module):
         self.activation = getattr(F, activation, F.relu)  # Default to F.relu if not found
 
     def _calculate_fc_input_size(self):
-        # Initial size (assuming square images)
-        size = 28  # Initial image size is 28x28 pixels
+        """
+        Calculate the input size required for the fully connected layer based on the convolutional layers.
+        Returns:
+            int: The total number of features after applying convolutions and pooling.
+        """
+        # Initial size 
+        size = 28  
 
         # Apply first convolution and pooling
-        size = (size - (self.conv1.kernel_size[0] - 1) - 1) // 2 + 1  # Conv1 and pooling
+        size = (size - (self.conv1.kernel_size[0] - 1) - 1) // 2 + 1  
 
         # Apply second convolution and pooling
-        size = (size - (self.conv2.kernel_size[0] - 1) - 1) // 2 + 1  # Conv2 and pooling
+        size = (size - (self.conv2.kernel_size[0] - 1) - 1) // 2 + 1  
 
         # Calculate total number of features
         return size * size * self.conv2.out_channels
 
     def forward(self, x):
+        """
+        Applies a series of operations to the input tensor x and returns the log softmax of the final output.
+
+        Args:
+            x: Input tensor.
+
+        Returns:
+            Tensor: The log softmax of the final output.
+        """
         x = self.activation(F.max_pool2d(self.conv1(x), 2))
         x = self.activation(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
         x = x.view(-1, self._calculate_fc_input_size())
@@ -116,6 +148,24 @@ def test(model, device, test_loader):
 experiment_results = []
 
 def run_experiment(num_filters1, num_filters2, dropout_rate, lr, batch_size=64, optimizer_choice='SGD', kernel_size1=5, kernel_size2=5, activation='relu', num_epochs=5):
+    """
+    Adjusts DataLoader batch_size, initializes model, chooses optimizer, trains the model, tests the model, and records experiment results.
+    
+    Parameters:
+    - num_filters1 (int): Number of filters in the first convolutional layer.
+    - num_filters2 (int): Number of filters in the second convolutional layer.
+    - dropout_rate (float): Dropout rate for regularization.
+    - lr (float): Learning rate for optimizer.
+    - batch_size (int, optional): Batch size for DataLoader. Default is 64.
+    - optimizer_choice (str, optional): Choice of optimizer ('SGD' or 'Adam'). Default is 'SGD'.
+    - kernel_size1 (int, optional): Kernel size for the first convolutional layer. Default is 5.
+    - kernel_size2 (int, optional): Kernel size for the second convolutional layer. Default is 5.
+    - activation (str, optional): Activation function. Default is 'relu'.
+    - num_epochs (int, optional): Number of epochs for training. Default is 5.
+    
+    Returns:
+    - None
+    """
     # Adjust DataLoader batch_size
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=1000, shuffle=False)  
@@ -160,6 +210,9 @@ optimizer_choices = ['SGD', 'Adam']
 activation_functions = ['relu']
 
 def run_experiments():
+    """
+    A function to run experiments with various combinations of parameters.
+    """
     for num_filters1 in num_filters1_range:
         for num_filters2 in num_filters2_range:
             for dropout_rate in dropout_rate_range:
@@ -176,6 +229,16 @@ df = pd.DataFrame(experiment_results)
 df.to_csv('experiment_results.csv', index=False)
 
 def plot_parameter_impact(df, parameter_name):
+    """
+    Plots the impact of a given parameter on the accuracy of the data.
+
+    Parameters:
+    df (DataFrame): The input dataframe containing the data.
+    parameter_name (str): The name of the parameter to be analyzed.
+
+    Returns:
+    None
+    """
     grouped_data = df.groupby(parameter_name)['accuracy'].mean().reset_index()
     
     plt.figure(figsize=(10, 6))
@@ -218,7 +281,7 @@ if __name__ == "__main__":
     
 
 
-    # Continue with your plotting functions if df is not empty
+    # plotting functions if df is not empty
     print("Plotting results...")
     plot_parameter_impact(df, 'learning_rate')
     plot_parameter_impact(df, 'dropout_rate')

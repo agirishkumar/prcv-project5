@@ -1,3 +1,6 @@
+# Authors: Girish Kumar Adari, Alexander Seljuk
+# Code for Task 1 E,F: Read the network and run it on the test set, Test the network on new inputs.
+
 import matplotlib.pyplot as plt
 import torch
 from torchvision import transforms, datasets

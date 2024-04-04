@@ -1,6 +1,7 @@
+# Authors: Girish Kumar Adari, Alexander Seljuk
+# Code for Task 1 A,B,C,D: Get the MNIST digit data set, Build a network model, Train the model, Save the network to a file
+
 import matplotlib.pyplot as plt
-import numpy as np
-# import hiddenlayer as hl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -30,7 +31,7 @@ def visualize_mnist_test(test_loader):
         visualize_mnist_test(test_loader)
     """
     dataiter = iter(test_loader)
-    images, labels = next(dataiter)  # Use next() function with the iterator
+    images, labels = next(dataiter)  
     images = images.to('cpu')  # Move images back to CPU for visualization
 
     # Plotting
@@ -79,12 +80,6 @@ class Network(nn.Module):
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
 
-
-# Example of using the model
-# model = Network()
-# print(model)
-# graph = hl.build_graph(model, torch.zeros([1, 1, 28, 28]))
-# graph.save('Network.png', format='png')
     
 def train(model, device, train_loader, optimizer, epoch):
     """
@@ -244,9 +239,7 @@ def main():
     # Save the model
     torch.save(model.state_dict(), 'mnist_model.pth')
     print('Model saved to mnist_model.pth')
-
-
-    
+ 
 
 if __name__ == "__main__":
     main()

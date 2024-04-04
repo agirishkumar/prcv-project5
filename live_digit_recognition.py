@@ -1,9 +1,12 @@
+# Authors: Girish Kumar Adari, Alexander Seljuk
+# Extension: Digit recognition for live video feed
+
 import cv2
 import numpy as np
 import torch
 from torchvision import transforms
 import torch.nn.functional as F
-from base import Network  # Import your network class appropriately
+from base import Network  
 
 # Load your trained model
 model = Network()
@@ -29,7 +32,7 @@ while True:
 
     # Preprocessing the frame
     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    processed_frame = transform(gray_frame).unsqueeze(0)  # Adding batch dimension
+    processed_frame = transform(gray_frame).unsqueeze(0)  
 
     # Prediction
     with torch.no_grad():

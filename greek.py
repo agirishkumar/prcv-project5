@@ -1,3 +1,7 @@
+# Authors: Girish Kumar Adari, Alexander Seljuk
+# Code for Task 3: Transfer Learning on Greek Letters 
+# Extension: added more Greek Letters (lambda,'delta', 'epsilon', 'fi','heta', 'iota', 'kappa', 'ksi', 'lambda', 'mi', 'ni', 'omega', 'omikron', 'pi')
+
 from base import Network, train, test
 import torch
 import torchvision
@@ -21,9 +25,15 @@ class GreekTransform:
 # A transformation for bigger greek letters
 class ExtensiveGreekTransform:
     def __init__(self):
+        """
+        Initialize the class with default values.
+        """
         pass
 
     def __call__(self, x):
+        """
+        Perform a series of torchvision transformations on the input tensor x and return the final transformed tensor.
+        """
         x = torchvision.transforms.functional.rgb_to_grayscale( x )
         x = torchvision.transforms.functional.affine( x, 0, (0,0), 0.8, 0 )
         x = torchvision.transforms.functional.center_crop( x, (28, 28) )
@@ -31,6 +41,18 @@ class ExtensiveGreekTransform:
 
 # Transfer learning the last classification layer, while keeping the other layers frozen and trains the model to predict 3 classes
 def transfer_learning(network, greek_dataset, device, num_classes = 3):
+    """
+    Perform transfer learning on a given network using a Greek dataset and a specified device.
+
+    Args:
+        network: The neural network to be used for transfer learning.
+        greek_dataset: The dataset to be used for training and testing.
+        device: The device (CPU or GPU) on which the network will be trained and tested.
+        num_classes: The number of classes in the dataset (default is 3).
+
+    Returns:
+        None
+    """
     # Freeze all classification layers
     for param in network.parameters():
         param.requires_grad = False
@@ -55,6 +77,18 @@ def transfer_learning(network, greek_dataset, device, num_classes = 3):
 
 # Fine-tunes on a bigger size problem by retraining the last two classification layer
 def transfer_learning_bigger(network, greek_dataset, device, num_classes = 3):
+    """
+    Perform transfer learning by replacing the last two layers of the network with new layers, freeze all other layers, and train the network on the given Greek dataset for 20 epochs.
+    
+    Parameters:
+    - network: the neural network model to be modified
+    - greek_dataset: the dataset for training and testing
+    - device: the device to run the training on (e.g., 'cpu' or 'cuda')
+    - num_classes: the number of classes in the dataset (default is 3)
+    
+    Returns:
+    None
+    """
     # Freeze all layers
     for param in network.parameters():
         param.requires_grad = False
@@ -83,6 +117,10 @@ classes = ['alpha', 'beta', 'delta', 'epsilon', 'fi', 'gamma', 'heta', 'iota', '
 
 # Predicts the class of an bunch of images
 def predict(network, device, test_loader):
+    """
+    A function that takes a neural network, a device, and a test data loader
+    to make predictions on the test data. It returns a list of predictions and a list of images for plotting.
+    """
     network.to(device)
     network.eval()
     preds = []
@@ -98,6 +136,10 @@ def predict(network, device, test_loader):
 
 # Predicts the class of a single image, does the whole classification path and return the label
 def predict_image(image_path):
+    """
+    A function that takes an image path as input, processes the image, and makes a prediction using a pre-trained network.
+    Returns the predicted class of the image.
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # opens the image
     image = Image.open(image_path).convert('L')
@@ -121,6 +163,17 @@ def predict_image(image_path):
 
 # Plots the results of predictions
 def plot_results(preds, images_to_plot, classes):
+    """
+    Plot the results of the predictions alongside the corresponding images.
+
+    Parameters:
+    - preds: List of predicted classes.
+    - images_to_plot: List of images to be plotted.
+    - classes: List of class labels.
+
+    Returns:
+    None
+    """
     
     plt.figure(figsize=(15, 10))
     for i, (image, pred) in enumerate(zip(images_to_plot, preds)):
@@ -132,6 +185,9 @@ def plot_results(preds, images_to_plot, classes):
 
 # learns on a bigger dataset with more classes
 def learn_bigger_network():
+    """
+    Generates a larger network for learning Greek letters by loading the dataset, model, and test dataset, then fine-tuning the model using transfer learning. Finally, it tests the model, prints the loss and accuracy, classifies the classes, plots the results, and saves the model.
+    """
     # transformation for greek letters
     transform = torchvision.transforms.Compose( [torchvision.transforms.ToTensor(),
                                                 ExtensiveGreekTransform(),
@@ -160,6 +216,10 @@ def learn_bigger_network():
     torch.save(network.state_dict(), 'greek_model.pth')
 
 def main(argv):
+    """
+    Trains the network on 3 classes
+    transformation for greek letters
+    """
     if len(argv) > 1 and argv[1] == 'bigger':
         #trains the 2 layers network on 16 classes
         learn_bigger_network()

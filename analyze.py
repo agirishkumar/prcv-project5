@@ -1,3 +1,6 @@
+# Authors: Girish Kumar Adari, Alexander Seljuk
+# Code for Task 2 A: Analyze the first layer
+
 import torch
 from base import Network
 import matplotlib.pyplot as plt
@@ -41,7 +44,7 @@ def visualize_filters(layer_weights):
     Returns:
         None
     """
-    with torch.no_grad():  # We don't need gradients for visualization
+    with torch.no_grad():  
         # Normalize the weights for visualization
         min_val = layer_weights.min()
         max_val = layer_weights.max()

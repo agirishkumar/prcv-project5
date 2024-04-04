@@ -1,3 +1,6 @@
+# Authors: Girish Kumar Adari, Alexander Seljuk
+# Extension: Code for Gui version for model to classify numbers and greek letters
+
 import gradio as gr
 import base
 import analyze
@@ -13,6 +16,15 @@ from torchvision import transforms
 categories = ["Cat", "Dog", "Bird"]
 
 def classify_image(image):
+    """
+    A function to classify an image using a pre-trained model.
+    
+    Parameters:
+    image (PIL image): The input image to be classified.
+    
+    Returns:
+    int: The predicted digit from the input image.
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # Initialize and load your model here
@@ -30,11 +42,17 @@ def classify_image(image):
     return testing.classify_digit(model, device, transformed_image)
 
 def translate_to_greek(letter):
+    """
+    Translate text to Greek
+    """
     # Translate text to Greek
 
     return greek.predict_image(letter)
 
 def simulate_training(dataset_size):
+    """
+    Simulate some "training" based on dataset size. For demo, we just return a random accuracy.
+    """
     # Simulate some "training" based on dataset size. For demo, we just return a random accuracy.
     accuracy = random.uniform(0.5, 1.0)  # Random accuracy between 50% and 100%
     return f"Simulated training accuracy: {accuracy:.2%} for dataset size: {dataset_size}"

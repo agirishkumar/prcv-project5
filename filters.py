@@ -1,3 +1,6 @@
+# Authors: Girish Kumar Adari, Alexander Seljuk
+# Code for Task 2 B: Show the effect of the filters
+
 import cv2
 import torch
 import numpy as np
